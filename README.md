@@ -1,4 +1,4 @@
-# �️ GESTIÓN DE RESTAURANTES - Sistema Integral de Gestión de Datos
+# GESTIÓN DE RESTAURANTES - Sistema Integral de Gestión de Datos
 
 ## 📋 Descripción del Proyecto
 
