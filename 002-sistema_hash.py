@@ -225,59 +225,39 @@ def demo_sistema_hash():
     
     sistema = SistemaRestaurantesHash()
     
-    # Restaurantes destacados de España
-    restaurantes = [
-        {
-            "cif": "A28010000",
-            "nombre": "DiverXO",
-            "chef": "Dabiz Muñoz",
-            "ciudad": "Madrid",
-            "tipo_cocina": "Fusión vanguardista",
-            "estrellas_michelin": "3",
-            "precio_medio": "250€",
-            "telefono": "+34 915 70 07 66"
-        },
-        {
-            "cif": "B08012345",
-            "nombre": "Disfrutar",
-            "chef": "Oriol Castro, Eduard Xatruch, Mateu Casañas",
-            "ciudad": "Barcelona",
-            "tipo_cocina": "Mediterránea creativa",
-            "estrellas_michelin": "3",
-            "precio_medio": "220€",
-            "telefono": "+34 933 48 68 96"
-        },
-        {
-            "cif": "A20023456",
-            "nombre": "Elkano",
-            "chef": "Pedro Arregui",
-            "ciudad": "Getaria",
-            "tipo_cocina": "Asador vasco",
-            "estrellas_michelin": "1",
-            "precio_medio": "100€",
-            "telefono": "+34 943 14 06 14"
-        },
-        {
-            "cif": "B41034567",
-            "nombre": "Abantal",
-            "chef": "Julio Fernández",
-            "ciudad": "Sevilla",
-            "tipo_cocina": "Andaluza moderna",
-            "estrellas_michelin": "1",
-            "precio_medio": "85€",
-            "telefono": "+34 954 54 00 00"
-        },
-        {
-            "cif": "C46045678",
-            "nombre": "Quique Dacosta",
-            "chef": "Quique Dacosta",
-            "ciudad": "Dénia",
-            "tipo_cocina": "Mediterránea de autor",
-            "estrellas_michelin": "3",
-            "precio_medio": "240€",
-            "telefono": "+34 96 578 41 79"
-        }
-    ]
+    # Leer restaurantes desde el CSV
+    print("\n📖 Leyendo datos desde el archivo CSV...")
+    print("-" * 60)
+    import csv
+    restaurantes = []
+    try:
+        with open("restaurantes_datos/texto/restaurantes.csv", 'r', encoding='utf-8') as archivo:
+            lector = csv.DictReader(archivo)
+            restaurantes = list(lector)
+        print(f"✓ {len(restaurantes)} restaurantes leídos desde CSV")
+    except FileNotFoundError:
+        print("✗ Archivo CSV no encontrado")
+        return
+    except Exception as e:
+        print(f"✗ Error al leer CSV: {e}")
+        return
+    
+    # 0. Limpiar archivos hash antiguos
+    print("\n🧹 Limpiando archivos hash antiguos...")
+    print("-" * 60)
+    try:
+        archivos_eliminados = 0
+        # Listar todos los archivos en el directorio hash
+        if os.path.exists(sistema.ruta_hash):
+            for archivo in os.listdir(sistema.ruta_hash):
+                if archivo.endswith('.json'):
+                    ruta_archivo = os.path.join(sistema.ruta_hash, archivo)
+                    os.remove(ruta_archivo)
+                    print(f"  ✓ Eliminado: {archivo}")
+                    archivos_eliminados += 1
+        print(f"✓ Total: {archivos_eliminados} archivos antiguos eliminados")
+    except Exception as e:
+        print(f"⚠ Error al limpiar archivos: {e}")
     
     # 1. Guardar restaurantes usando hash
     print("\n1. Guardando restaurantes con sistema de hash...")
@@ -288,7 +268,8 @@ def demo_sistema_hash():
     # 2. Búsqueda directa por CIF (muy rápida - O(1))
     print("\n2. Búsqueda directa por CIF...")
     print("-" * 60)
-    cif_buscar = "B08012345"
+    # Usar el primer CIF del CSV si existe
+    cif_buscar = restaurantes[0]['cif'] if restaurantes else "A28010000"
     print(f"Buscando CIF: {cif_buscar}")
     resto_encontrado = sistema.buscar_restaurante_por_cif(cif_buscar)
     if resto_encontrado:

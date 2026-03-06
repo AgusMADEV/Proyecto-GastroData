@@ -234,54 +234,65 @@ def demo_serializacion_pickle():
     
     sistema = SistemaRestaurantesBinario()
     
-    # 1. Crear objetos Restaurante complejos
-    print("\n1. Creando objetos Restaurante con datos complejos...")
+    # Leer restaurantes desde el CSV
+    print("\n📖 Leyendo datos desde el archivo CSV...")
+    print("-" * 60)
+    import csv
+    restaurantes_csv = []
+    try:
+        with open("restaurantes_datos/texto/restaurantes.csv", 'r', encoding='utf-8') as archivo:
+            lector = csv.DictReader(archivo)
+            restaurantes_csv = list(lector)
+        print(f"✓ {len(restaurantes_csv)} restaurantes leídos desde CSV")
+    except FileNotFoundError:
+        print("✗ Archivo CSV no encontrado")
+        return
+    except Exception as e:
+        print(f"✗ Error al leer CSV: {e}")
+        return
+    
+    # 1. Crear objetos Restaurante complejos desde CSV
+    print("\n1. Creando objetos Restaurante con datos del CSV...")
     print("-" * 60)
     
-    rest1 = Restaurante(
-        cif="A28010000",
-        nombre="DiverXO",
-        chef="Dabiz Muñoz",
-        ciudad="Madrid",
-        tipo_cocina="Fusión vanguardista",
-        estrellas_michelin="3",
-        precio_medio="250€"
-    )
-    rest1.agregar_reseña("Juan", 5, "Experiencia gastronómica única e inolvidable")
-    rest1.agregar_reseña("María", 5, "Innovador y sorprendente en cada plato")
-    rest1.agregar_reserva("Pedro García", datetime(2024, 3, 15), 4)
+    # Tomar los primeros 3 restaurantes para la demo
+    objetos_restaurante = []
+    for i, datos in enumerate(restaurantes_csv[:3]):
+        rest = Restaurante(
+            cif=datos['cif'],
+            nombre=datos['nombre'],
+            chef=datos['chef'],
+            ciudad=datos['ciudad'],
+            tipo_cocina=datos['tipo_cocina'],
+            estrellas_michelin=datos['estrellas_michelin'],
+            precio_medio=datos['precio_medio']
+        )
+        # Agregar algunas reseñas de ejemplo
+        rest.agregar_reseña("Usuario de prueba", 5, "Excelente restaurante")
+        if i == 0:
+            rest.agregar_reserva("Cliente Ejemplo", datetime(2026, 4, 15), 2)
+        objetos_restaurante.append(rest)
+        print(f"✓ Creado: {rest}")
+        print(f"  - {len(rest.reseñas)} reseña(s), calificación: {rest.calificacion_promedio()}/5")
     
-    rest2 = Restaurante(
-        cif="B08012345",
-        nombre="Disfrutar",
-        chef="Oriol Castro",
-        ciudad="Barcelona",
-        tipo_cocina="Mediterránea creativa",
-        estrellas_michelin="3",
-        precio_medio="220€"
-    )
-    rest2.agregar_reseña("Ana", 5, "Cada plato es una obra de arte")
-    rest2.agregar_reserva("Laura Martínez", datetime(2024, 4, 10), 2)
+    rest1, rest2, rest3 = objetos_restaurante[0], objetos_restaurante[1], objetos_restaurante[2]
     
-    rest3 = Restaurante(
-        cif="A20023456",
-        nombre="Elkano",
-        chef="Pedro Arregui",
-        ciudad="Getaria",
-        tipo_cocina="Asador vasco",
-        estrellas_michelin="1",
-        precio_medio="100€"
-    )
-    rest3.agregar_reseña("Carlos", 5, "El mejor rodaballo del mundo")
-    rest3.agregar_reseña("Sofía", 5, "Producto impecable y cocción perfecta")
-    rest3.agregar_reseña("Diego", 5, "Simplemente espectacular")
-    
-    print(f"✓ Creado: {rest1}")
-    print(f"  - {len(rest1.reseñas)} reseñas, calificación: {rest1.calificacion_promedio()}/5")
-    print(f"✓ Creado: {rest2}")
-    print(f"  - {len(rest2.reseñas)} reseña(s), calificación: {rest2.calificacion_promedio()}/5")
-    print(f"✓ Creado: {rest3}")
-    print(f"  - {len(rest3.reseñas)} reseñas, calificación: {rest3.calificacion_promedio()}/5")
+    # 1.5. Limpiar archivos pickle antiguos
+    print("\n🧹 Limpiando archivos pickle antiguos...")
+    print("-" * 60)
+    try:
+        archivos_eliminados = 0
+        # Listar todos los archivos en el directorio binario
+        if os.path.exists(sistema.ruta_binario):
+            for archivo in os.listdir(sistema.ruta_binario):
+                if archivo.endswith('.pkl'):
+                    ruta_archivo = os.path.join(sistema.ruta_binario, archivo)
+                    os.remove(ruta_archivo)
+                    print(f"  ✓ Eliminado: {archivo}")
+                    archivos_eliminados += 1
+        print(f"✓ Total: {archivos_eliminados} archivos antiguos eliminados")
+    except Exception as e:
+        print(f"⚠ Error al limpiar archivos: {e}")
     
     # 2. Guardar restaurantes individualmente
     print("\n2. Serializando restaurantes individuales...")
@@ -293,7 +304,9 @@ def demo_serializacion_pickle():
     # 3. Cargar un restaurante individual
     print("\n3. Deserializando un restaurante individual...")
     print("-" * 60)
-    rest_cargado = sistema.cargar_restaurante_binario("B08012345.pkl")
+    # Usar el CIF del segundo restaurante
+    nombre_archivo = rest2.cif.replace("-", "_") + ".pkl"
+    rest_cargado = sistema.cargar_restaurante_binario(nombre_archivo)
     if rest_cargado:
         print(f"Nombre: {rest_cargado.nombre}")
         print(f"Chef: {rest_cargado.chef}")
