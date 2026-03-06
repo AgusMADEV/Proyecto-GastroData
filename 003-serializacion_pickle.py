@@ -255,9 +255,9 @@ def demo_serializacion_pickle():
     print("\n1. Creando objetos Restaurante con datos del CSV...")
     print("-" * 60)
     
-    # Tomar los primeros 3 restaurantes para la demo
+    # Procesar TODOS los restaurantes del CSV
     objetos_restaurante = []
-    for i, datos in enumerate(restaurantes_csv[:3]):
+    for i, datos in enumerate(restaurantes_csv):
         rest = Restaurante(
             cif=datos['cif'],
             nombre=datos['nombre'],
@@ -272,9 +272,16 @@ def demo_serializacion_pickle():
         if i == 0:
             rest.agregar_reserva("Cliente Ejemplo", datetime(2026, 4, 15), 2)
         objetos_restaurante.append(rest)
-        print(f"✓ Creado: {rest}")
-        print(f"  - {len(rest.reseñas)} reseña(s), calificación: {rest.calificacion_promedio()}/5")
+        # Mostrar solo los primeros 5 para no saturar la pantalla
+        if i < 5:
+            print(f"✓ Creado: {rest}")
+            print(f"  - {len(rest.reseñas)} reseña(s), calificación: {rest.calificacion_promedio()}/5")
+        elif i == 5:
+            print(f"... procesando los {len(restaurantes_csv) - 5} restaurantes restantes ...")
     
+    print(f"\n✓ Total de objetos Restaurante creados: {len(objetos_restaurante)}")
+    
+    # Usar el primer restaurante para las demos posteriores
     rest1, rest2, rest3 = objetos_restaurante[0], objetos_restaurante[1], objetos_restaurante[2]
     
     # 1.5. Limpiar archivos pickle antiguos
@@ -297,9 +304,18 @@ def demo_serializacion_pickle():
     # 2. Guardar restaurantes individualmente
     print("\n2. Serializando restaurantes individuales...")
     print("-" * 60)
-    sistema.guardar_restaurante_binario(rest1)
-    sistema.guardar_restaurante_binario(rest2)
-    sistema.guardar_restaurante_binario(rest3)
+    for i, rest in enumerate(objetos_restaurante):
+        sistema.guardar_restaurante_binario(rest)
+        # Mostrar solo los primeros 5 para no saturar la pantalla
+        if i >= 5:
+            break
+    
+    if len(objetos_restaurante) > 5:
+        print(f"... serializando los {len(objetos_restaurante) - 5} restaurantes restantes ...")
+        for rest in objetos_restaurante[5:]:
+            sistema.guardar_restaurante_binario(rest)
+    
+    print(f"\n✓ Total: {len(objetos_restaurante)} restaurantes serializados individualmente")
     
     # 3. Cargar un restaurante individual
     print("\n3. Deserializando un restaurante individual...")
@@ -317,16 +333,18 @@ def demo_serializacion_pickle():
     # 4. Guardar colección completa
     print("\n4. Guardando colección completa...")
     print("-" * 60)
-    coleccion = [rest1, rest2, rest3]
-    sistema.guardar_coleccion_completa(coleccion)
+    sistema.guardar_coleccion_completa(objetos_restaurante)
     
     # 5. Cargar colección completa
     print("\n5. Cargando colección completa...")
     print("-" * 60)
     restaurantes_cargados = sistema.cargar_coleccion_completa()
-    for rest in restaurantes_cargados:
+    print(f"\nMostrando primeros 5 de {len(restaurantes_cargados)}:")
+    for i, rest in enumerate(restaurantes_cargados[:5]):
         estrellas = "⭐"*int(rest.estrellas_michelin)
         print(f"{estrellas} {rest.nombre} ({rest.ciudad}) - Calificación: {rest.calificacion_promedio()}/5")
+    if len(restaurantes_cargados) > 5:
+        print(f"... y {len(restaurantes_cargados) - 5} restaurantes más")
     
     # 6. Demostrar ventajas de pickle
     print("\n6. Ventajas de la serialización con pickle...")
